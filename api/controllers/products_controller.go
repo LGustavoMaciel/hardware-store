@@ -19,32 +19,40 @@ type productsControllerImpl struct {
 	productsRepository repository.ProductsRepository
 }
 
-func(c *productsControllerImpl) PostProduct(w http.ResponseWriter, r *http.Request) {
+func NewProductsController(productsRepository repository.ProductsRepository) *productsControllerImpl {
+	return &productsControllerImpl{productsRepository}
+}
+
+
+
+func (c *productsControllerImpl) PostProduct(w http.ResponseWriter, r *http.Request) {
 	if r.Body != nil {
 		defer r.Body.Close()
 	}
 
 	bytes, err := io.ReadAll(r.Body)
-	if err!= nil {
-        utils.WriteError(w, err, http.StatusUnprocessableEntity)
+	if err != nil {
+		utils.WriteError(w, err, http.StatusUnprocessableEntity)
 		return
-    }
+	}
 
 	product := &models.Product{}
 	err = json.Unmarshal(bytes, product)
-	if err!= nil {
-        utils.WriteError(w, err, http.StatusUnprocessableEntity)
+	if err != nil {
+		utils.WriteError(w, err, http.StatusUnprocessableEntity)
 		return
-    }
+	}
 
 	err = product.Validate()
-	if err!= nil {
-        utils.WriteError(w, err, http.StatusBadRequest)
+	if err != nil {
+		utils.WriteError(w, err, http.StatusBadRequest)
 		return
-    }
+	}
+
+	// product.CheckStatus()
 
 	product, err = c.productsRepository.Save(product)
-	if  err!= nil {
+	if err != nil {
 		utils.WriteError(w, err, http.StatusUnprocessableEntity)
 		return
 	}
